@@ -32,7 +32,7 @@ def gauss( a, f, e, q ,r, perm, intarith, eps):
         q.mult_row(i, -1) #TODO
         f.mult_row(i, -1) #TODO
     #TODO ...
-
+    # branch test
     print "test gauss"
 
 
