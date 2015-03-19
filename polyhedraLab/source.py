@@ -2,7 +2,37 @@ from sympy import Matrix
 
 
 #TODO
-def gauss():
+def gauss( a, f, e, q ,r, perm, intarith, eps):
+    m = a.rows
+    n = a.cols
+
+    f.assign_eye(n) #TODO what is assign_eye?
+    e.resize(0, n) #TODO
+
+    q = transpose(a) #TODO
+
+    for i in range(min(q.cols, q.rows)):
+        q_pivot = abs(q[i][i]) #TODO
+        j_pivot = i
+        for j in range(i+1, m): #TODO
+            if abs(q[i][j] > q_pivot: #TODO
+                j_pivot = j
+                q_pivot = abs(q[i][j])
+    if q_pivot <= eps:
+        # it's a zero row
+        q.erase_row(i) #TODO
+        e.insert_row(e.rows, f.take_row(i)) #TODO
+        continue
+
+    if i != j_pivot:
+        q.swap_cols(i, j_pivot) #TODO swap?
+        perm.swap_els(i, j_pivot) #TODO swap?
+
+    if q[i][i] < 0:
+        q.mult_row(i, -1) #TODO
+        f.mult_row(i, -1) #TODO
+    #TODO ...
+
     print "test gauss"
 
 
