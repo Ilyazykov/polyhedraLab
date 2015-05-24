@@ -16,7 +16,7 @@ def get_matrix_B(cone_matrix): #TODO:
     return A, B
 
 
-def adjacent(A, u1, u2):
+def adjacent(A, u1, u2): #TODO
     temp = sp.Matrix.zeros(0,A.cols)
     for i in range(A.rows):
         if (A[i,:]*u1)[0] == 0 and (A[i,:]*u2)[0] == 0:
