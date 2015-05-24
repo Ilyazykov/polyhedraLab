@@ -1,23 +1,32 @@
 import numpy as np
 import sympy as sp
+import random
 
 
-def get_matrix_B(cone_matrix): #TODO: rename
+def get_matrix_B(cone_matrix): #TODO:
     size = cone_matrix.rank()
     B = cone_matrix[:size,:]
     A = cone_matrix[size:,:]
-    if (B.rank() != size):
-        raise ValueError('Degenerate matrix')
+    while (B.rank() != size):
+        b = random.randint(0, size-1)
+        a = random.randint(0, A.rows-1)
+        temp = A[a,:]
+        A[a,:] = B[b,:]
+        B[b,:] = temp
     return A, B
 
 
-def adjacent(plus, minus): #TODO realize function!!!
-    #DEBUG: print plus
-    #DEBUG: print minus
-    return True
+def adjacent(A, u1, u2):
+    temp = sp.Matrix.zeros(0,A.cols)
+    for i in range(A.rows):
+        if (A[i,:]*u1)[0] == 0 and (A[i,:]*u2)[0] == 0:
+            temp = temp.col_join(A[i,:])
+    if temp.rank() == A.rank() - 2:
+        return True
+    return False
 
 
-def step(new_row, Ut): #TODO: rename
+def step(A, new_row, Ut): #TODO: to come up with the name of the function
     aiu = new_row*Ut
 
     uplus = []
@@ -36,7 +45,7 @@ def step(new_row, Ut): #TODO: rename
 
     for iplus in uplus:
         for iminus in uminus:
-            if adjacent(Ut[:,iplus], Ut[:,iminus]):
+            if adjacent(A, Ut[:,iplus], Ut[:,iminus]):
                 newU = aiu[iplus]*Ut[:,iminus] - aiu[iminus]*Ut[:,iplus]
                 uplusminus.append(newU)
 
@@ -61,11 +70,12 @@ def double_description(cone_matrix):
     #DEBUG: print np.matrix(Ut)
 
     for i in range(A.rows):
-        Ut = step(A[i,:], Ut)
+        Ut = step(B.col_join(A) ,A[i,:], Ut)
 
-    #DEBUG: print np.matrix(Ut)
+    return np.matrix(Ut)
 
 
 if __name__ == "__main__":
     a = sp.Matrix([[1,-1,0],[1,1,0],[1,0,1],[1,0,-1],[1,0,0]])
-    double_description(a)
+    res = double_description(a)
+    print np.matrix(res)
