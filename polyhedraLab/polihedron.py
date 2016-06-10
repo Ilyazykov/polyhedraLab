@@ -38,7 +38,7 @@ class hasse:
                     b = sp.ones(needed_eq_num, 1)
 
                     x = sp.symbols(','.join(['x'+str(i) for i in range(dim)]))
-                    res_current = linsolve((A,b),x)
+                    res_current = linsolve(A.col_insert(A.cols, b),x)
 
                 line.append(str(res_current))
                 #for debug
@@ -150,7 +150,8 @@ class polyhedron:
         for rows in itertools.combinations(range(eq_num), dim):
             A = self.inequalities[rows,:]
             b = sp.ones(dim, 1)
-            res_current = linsolve((A,b),x)
+
+            res_current = linsolve(A.col_insert(A.cols, b),x)
             if res_current != sp.EmptySet():
                 res.append(rows)
 
@@ -168,7 +169,7 @@ class polyhedron:
         for rows in itertools.combinations(range(eq_num), needed_eq_num):
             A = self.inequalities[rows,:]
             b = sp.ones(needed_eq_num, 1)
-            res_current = linsolve((A,b),x)
+            res_current = linsolve(A.col_insert(A.cols, b),x)
             if res_current != sp.EmptySet():
                 res.append(rows)
 
@@ -230,7 +231,7 @@ class polyhedron:
         b = sp.ones(needed_eq_num, 1)
 
         x = sp.symbols(','.join(['x'+str(i) for i in range(dim)]))
-        res = linsolve((A,b),x)
+        res = linsolve(A.col_insert(A.cols, b),x)
         return res
 
 
