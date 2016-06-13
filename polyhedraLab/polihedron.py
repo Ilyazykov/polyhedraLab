@@ -388,17 +388,17 @@ class polyhedron:
 
 def main():
     P1 = polyhedron(name = "cube", dim = 3)
-    #print P1.skeleton()
-    #print
-    #print P1.hasse_diagram()
-    #print
-    #print P1.vertices()
-    #print
-    #print P1.facets()
-    #print
-    #print P1.dim()
+    print P1.skeleton()
+    print
+    print P1.hasse_diagram()
+    print
+    print P1.vertices()
+    print
+    print P1.facets()
+    print
+    print P1.dim()
 
-    #print
+    print
     A2 = sp.Matrix([[1,0], [-1, 0], [0,  1], [0, -1]])
     P2 = polyhedron(inequalities = A2)
     print P2.skeleton()
@@ -409,22 +409,22 @@ def main():
     print
     print P2.graph()
 
-    #print
-    #A3 = sp.Matrix([[1,0], [-1, 0], [0, -1]])
-    #P3 = polyhedron(inequalities = A3)
-    #print P3.vertices()
-    #print
-    #for i in P3.hasse_diagram():
-    #    print list(i[0]), list(i[1])
-    #print
-    #print P3.skeleton()
-    #print P3.is_bounded()
-    #print P3.vertex_degrees()
+    print
+    A3 = sp.Matrix([[1,0], [-1, 0], [0, -1]])
+    P3 = polyhedron(inequalities = A3)
+    print P3.vertices()
+    print
+    for i in P3.hasse_diagram():
+        print list(i[0]), list(i[1])
+    print
+    print P3.skeleton()
+    print P3.is_bounded()
+    print P3.vertex_degrees()
 
-    #print
-    #A4 = sp.Matrix([[1,0], [0, 1]])
-    #P4 = polyhedron(inequalities = A4)
-    #print P4.skeleton()
+    print
+    A4 = sp.Matrix([[1,0], [0, 1]])
+    P4 = polyhedron(inequalities = A4)
+    print P4.skeleton()
 
 
 
