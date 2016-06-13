@@ -21,7 +21,8 @@ class hasse:
         for i in range(levels_number):
             self.levels.append([])
 
-    def __str__(self):
+
+    def my_view(self):
         res = []
         for level in range(len(self.levels))[::-1]:
             res_line = ""
@@ -47,6 +48,34 @@ class hasse:
             res_line = ",".join(line)
             res.append(res_line)
         return "\n".join(res)
+
+
+    def list_view(self):
+        result = []
+        index_magic_next = 0
+        for level in range(len(self.levels)):
+            index_magic_prev = '-'
+            index_magic_next += len(self.levels[level])
+            for element in range(len(self.levels[level])):
+                first = {}#set(element.previous_level)
+                if level == 0:
+                    first = {}
+                elif level == 1:
+                    first = {element}
+                else:
+                    first = set()
+                    index_magic_prev = index_magic_next - len(self.levels[level]) - len(self.levels[level-1])
+                    temp_first = [i+index_magic_prev for i in self.levels[level][element].previous_level]
+                    for i in temp_first:
+                        first = first.union(result[i][0])
+
+                second = set([i + index_magic_next for i in self.levels[level][element].next_level])
+                result.append((first, second))
+        return result
+
+
+    def __str__(self):
+        return str(self.list_view())
 
 
 class polyhedron:
@@ -220,7 +249,7 @@ class polyhedron:
 
 
     def hasse_diagram(self):
-        return self.hasse
+        return self.hasse.list_view()
 
 
     def get_faset_from_rows(self, rows, level):
@@ -237,17 +266,25 @@ class polyhedron:
 
     #public
     def vertices(self):
-        res = []
+        res = sp.Matrix([])
         for i in self.hasse.levels[1]:
-            res.append(self.get_faset_from_rows(i.value, 1))
+            current_res = sp.Matrix(list(self.get_faset_from_rows(i.value, 1)))
+            if res.rows > 0:
+                res = res.row_insert(res.rows, current_res)
+            else:
+                res = current_res
 
         return res
 
     #public
     def facets(self):
-        res = []
+        res = sp.Matrix([])
         for i in self.hasse.levels[3]:
-            res.append(self.get_faset_from_rows(i.value, 3))
+            current_res = sp.Matrix(list(self.get_faset_from_rows(i.value, 3)))
+            if res.rows > 0:
+                res = res.row_insert(res.rows, current_res)
+            else:
+                res = current_res
 
         return res
 
@@ -256,7 +293,21 @@ class polyhedron:
         return self.inequalities
 
     #public
+    def dim(self):
+        return self.inequalities.cols
+
+    #public
+    def is_feasible(self):
+        return self.dim() > 0
+
+    #public
+    def is_pointed(self):
+        pass
+
+    #public
     def bounded_facets(self):
+        #посчитать 2^уровень в диаграме хасе,
+        #вывести элементы со стольким количеством вершин
         pass
 
     #public
@@ -264,44 +315,116 @@ class polyhedron:
         pass
 
     #public
-    def is_bounded(self, first, second, level):
-        res = []
-        first = self.hasse.levels[level][first]
-        second = self.hasse.levels[level][second]
-
-        previos_level_first = first.previous_level
-        previos_level_second = second.previous_level
-
-        intersection = set(previos_level_first).intersection(set(previos_level_second))
-
-        return len(intersection) > 0
+    def is_bounded(self):
+        skeleton_matrix = self.skeleton()
+        for i in range(skeleton_matrix.rows):
+            if skeleton_matrix[i,0] == 0:
+                return False
+        return True
 
     #public
-    def vertex_number(self):
+    def N_points(self):
         return len(self.hasse.levels[1])
+
+    #public
+    def N_vertices_and_rays(self):
+        return self.skeleton().rows
+
+    #public
+    def N_vertices(self):
+        return len(self.hasse.levels[1])
+
+    #public
+    def N_rays(self):
+        return self.skeleton().rows - self.N_vertices()
+
+    #public
+    def vertex_in_facet(self):
+        pass
+
+    def facets_thru_vertex(self):
+        pass
+
+    def graph(self):
+        res = []
+        for vertex in range(len(self.hasse.levels[1])):
+            res.append([])
+            current_res = set()
+            for edge in self.hasse.levels[1][vertex].next_level:
+                current_res = current_res |\
+                    (set(self.hasse.levels[2][edge].previous_level) - \
+                    set([vertex]))
+            res[vertex] += (list(current_res))
+        return res
+
+
+    def dual_graph(self):
+        pass
+
+    def n_edges(self):
+        return len(self.hasse.levels[2])
+
+    def n_ridges(self):
+        return len(self.hasse.levels[self.dim()])
+
+    def vertex_degrees(self):
+        return [len(i.next_level) for i in self.hasse.levels[1]]
+
+    def facet_degrees(self):
+        if self.dim() != 2:
+            return [len(i.next_level) for i in self.hasse.levels[3]]
+        else:
+            return 0
+
+    def f_vector(self):
+        return [len(i) for i in self.hasse.levels]
+
+    def is_simplical(self):
+        pass
+
+    def is_simple(self):
+        pass
 
 
 def main():
     P1 = polyhedron(name = "cube", dim = 3)
-    print P1.skeleton()
-    print
-    print P1.hasse_diagram()
-    print
-    print P1.vertices()
-    print
-    print P1.facets()
-    print
+    #print P1.skeleton()
+    #print
+    #print P1.hasse_diagram()
+    #print
+    #print P1.vertices()
+    #print
+    #print P1.facets()
+    #print
+    #print P1.dim()
 
+    #print
+    A2 = sp.Matrix([[1,0], [-1, 0], [0,  1], [0, -1]])
+    P2 = polyhedron(inequalities = A2)
+    print P2.skeleton()
     print
-    A = sp.Matrix([[1,0], [-1, 0], [0,  1], [0, -1]])
-    P2 = polyhedron(inequalities = A)
     print P2.hasse_diagram()
     print
-    print P2.is_bounded(0, 1, 2) #true
+    print P2.f_vector()
     print
-    print P2.is_bounded(0, 3, 2) #false
-    print
-    print P2.vertex_number()
+    print P2.graph()
+
+    #print
+    #A3 = sp.Matrix([[1,0], [-1, 0], [0, -1]])
+    #P3 = polyhedron(inequalities = A3)
+    #print P3.vertices()
+    #print
+    #for i in P3.hasse_diagram():
+    #    print list(i[0]), list(i[1])
+    #print
+    #print P3.skeleton()
+    #print P3.is_bounded()
+    #print P3.vertex_degrees()
+
+    #print
+    #A4 = sp.Matrix([[1,0], [0, 1]])
+    #P4 = polyhedron(inequalities = A4)
+    #print P4.skeleton()
 
 
 
