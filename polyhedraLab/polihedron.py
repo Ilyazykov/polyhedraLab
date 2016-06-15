@@ -84,7 +84,9 @@ class polyhedron:
         if (inequalities != -1):
             self.inequalities = inequalities
         elif (points != -1):
-            pass
+            self.inequalities = points
+            self.inequalities = self.skeleton()
+            self.inequalities = self.inequalities.col_del(0)
         elif (name != -1 and dim != -1):
             if name == "cube":
                 self.inequalities = sp.zeros(dim*2, dim)
@@ -260,7 +262,7 @@ class polyhedron:
         b = sp.ones(needed_eq_num, 1)
 
         x = sp.symbols(','.join(['x'+str(i) for i in range(dim)]))
-        res = linsolve(A.col_insert(A.cols, b),x)
+        res = linsolve(A.col_insert(A.cols, b), x)
         return res
 
 
@@ -301,18 +303,36 @@ class polyhedron:
         return self.dim() > 0
 
     #public
-    def is_pointed(self):
-        pass
-
-    #public
     def bounded_facets(self):
-        #посчитать 2^уровень в диаграме хасе,
-        #вывести элементы со стольким количеством вершин
-        pass
+        minimum_vertices_in_facet_number = 3
+        res = sp.Matrix([])
+        for i in range(len(self.hasse.levels[3])):
+            i_vertices = set()
+            for j in self.hasse.levels[3][i].previous_level:
+                i_vertices = i_vertices.union(self.hasse.levels[2][j].previous_level)
+            if len(i_vertices) >= minimum_vertices_in_facet_number:
+                current_res = sp.Matrix(list(self.get_faset_from_rows(self.hasse.levels[3][i].value, 3)))
+                if res.rows > 0:
+                    res = res.row_insert(res.rows, current_res)
+                else:
+                    res = current_res
+        return res
 
     #public
     def unbounded_facets(self):
-        pass
+        minimum_vertices_in_facet_number = 3
+        res = sp.Matrix([])
+        for i in range(len(self.hasse.levels[3])):
+            i_vertices = set()
+            for j in self.hasse.levels[3][i].previous_level:
+                i_vertices = i_vertices.union(self.hasse.levels[2][j].previous_level)
+            if len(i_vertices) < minimum_vertices_in_facet_number:
+                current_res = sp.Matrix(list(self.get_faset_from_rows(self.hasse.levels[3][i].value, 3)))
+                if res.rows > 0:
+                    res = res.row_insert(res.rows, current_res)
+                else:
+                    res = current_res
+        return res
 
     #public
     def is_bounded(self):
@@ -339,12 +359,19 @@ class polyhedron:
         return self.skeleton().rows - self.N_vertices()
 
     #public
-    def vertex_in_facet(self):
-        pass
+    def vertex_in_facet(self, number):
+        return list(self.hasse.list_view()[number][0])
 
-    def facets_thru_vertex(self):
-        pass
+    #public
+    def facets_thru_vertex(self, number):
+        hasse_list = self.hasse.list_view()
+        edges = hasse_list[number][1]
+        res = set()
+        for i in edges:
+            res = res.union(hasse_list[i][1])
+        return list(res)
 
+    #public
     def graph(self):
         res = []
         for vertex in range(len(self.hasse.levels[1])):
@@ -357,38 +384,67 @@ class polyhedron:
             res[vertex] += (list(current_res))
         return res
 
-
+    #public
     def dual_graph(self):
-        pass
+        res = []
+        for vertex in range(len(self.hasse.levels[self.dim()+1])):
+            res.append([])
+            current_res = set()
+            for edge in self.hasse.levels[self.dim()+1][vertex].previous_level:
+                current_res = current_res |\
+                    (set(self.hasse.levels[self.dim()][edge].next_level) - \
+                    set([vertex]))
+            res[vertex] += (list(current_res))
+        return res
 
+    #public
     def n_edges(self):
         return len(self.hasse.levels[2])
 
+    #public
     def n_ridges(self):
         return len(self.hasse.levels[self.dim()])
 
+    #public
     def vertex_degrees(self):
         return [len(i.next_level) for i in self.hasse.levels[1]]
 
+    #public
     def facet_degrees(self):
         if self.dim() != 2:
             return [len(i.next_level) for i in self.hasse.levels[3]]
         else:
             return 0
 
+    #public
     def f_vector(self):
         return [len(i) for i in self.hasse.levels]
 
+    #public
     def is_simplical(self):
-        pass
+        f_vector = self.f_vector()
+        shift = f_vector[0] + f_vector[1] + f_vector[2]
+        number = f_vector[3]
 
+        for i in range(shift, number+shift):
+            d = self.dim()
+            if len(self.vertex_in_facet(i)) != d:
+                return False
+        return True
+
+    #public
     def is_simple(self):
-        pass
+        for i in range(self.N_vertices()):
+            d = self.dim()
+            if len(self.facets_thru_vertex(i+1)) != d:
+                return False
+        return True
 
 
 def main():
     P1 = polyhedron(name = "cube", dim = 3)
     print P1.skeleton()
+    P1.inequalities
     print
     print P1.hasse_diagram()
     print
@@ -426,6 +482,10 @@ def main():
     P4 = polyhedron(inequalities = A4)
     print P4.skeleton()
 
+    print
+    A5 = sp.Matrix([[1, 1], [1, -1], [-1, 1], [-1, -1]])
+    P5 = polyhedron(inequalities = A5)
+    print P5.skeleton()
 
 
 if __name__ == "__main__":
